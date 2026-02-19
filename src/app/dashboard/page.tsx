@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
@@ -350,12 +350,13 @@ export default function DashboardPage() {
     const stats = useQuery(api.goals.getUserStats);
 
     // Redirect if not authenticated
-    if (isAuthLoading) {
-        return <DashboardSkeleton />;
-    }
+    useEffect(() => {
+        if (!isAuthLoading && !isAuthenticated) {
+            router.push("/sign-in");
+        }
+    }, [isAuthLoading, isAuthenticated, router]);
 
-    if (!isAuthenticated) {
-        router.push("/sign-in");
+    if (isAuthLoading || !isAuthenticated) {
         return <DashboardSkeleton />;
     }
 
