@@ -584,7 +584,7 @@ export default function DashboardPage() {
                                         {!isComplete && (
                                             <Dialog
                                                 open={addMoneyGoal?.id === goal._id}
-                                                onOpenChange={(open) => {
+                                                onOpenChange={(open: boolean) => {
                                                     if (!open) setAddMoneyGoal(null);
                                                 }}
                                             >
