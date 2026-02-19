@@ -50,6 +50,7 @@ declare module "lucide-react" {
     export const Trophy: Icon;
     export const Loader2: Icon;
     export const Wallet: Icon;
+    export const ArrowLeft: Icon;
     export const ArrowRight: Icon;
     export const ArrowUpRight: Icon;
     export const ChevronRight: Icon;

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvexAuth } from "convex/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Sparkles, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function SignInPage() {
-    const { signIn } = useAuthActions();
+    const { isAuthenticated } = useConvexAuth();
     const router = useRouter();
+    const { signIn } = useAuthActions();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push("/dashboard");
+        }
+    }, [isAuthenticated, router]);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -30,14 +39,13 @@ export default function SignInPage() {
 
         setIsLoading(true);
         try {
-            await signIn("password", {
-                email,
-                password,
-                flow: "signIn",
-            });
+            await signIn("password", { email, password, flow: "signIn" });
+            // Redirect is handled by the effect or router.push
             router.push("/dashboard");
         } catch (err: any) {
-            setError(err?.message || "Invalid email or password. Please try again.");
+            console.error("Sign in error:", err);
+            const msg = err?.message || "Invalid email or password";
+            setError(msg.includes("Invalid login") ? "Invalid email or password." : msg);
         } finally {
             setIsLoading(false);
         }
