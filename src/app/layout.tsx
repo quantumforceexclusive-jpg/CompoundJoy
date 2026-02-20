@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -43,9 +44,16 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
             <body className="antialiased min-h-screen">
-                <ConvexClientProvider>
-                    {children}
-                </ConvexClientProvider>
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <ConvexClientProvider>
+                        {children}
+                    </ConvexClientProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

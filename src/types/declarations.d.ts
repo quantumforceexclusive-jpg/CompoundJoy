@@ -76,6 +76,8 @@ declare module "lucide-react" {
     export const Percent: Icon;
     export const Smartphone: Icon;
     export const TrendingDown: Icon;
+    export const Sun: Icon;
+    export const Moon: Icon;
 }
 
 declare module "class-variance-authority" {

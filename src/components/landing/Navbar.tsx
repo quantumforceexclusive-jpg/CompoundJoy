@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles } from "lucide-react";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -20,8 +21,8 @@ export function Navbar() {
     return (
         <nav
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                    ? "glass shadow-lg py-3"
-                    : "bg-transparent py-5"
+                ? "glass shadow-lg py-3"
+                : "bg-transparent py-5"
                 }`}
         >
             <div className="container mx-auto px-4 flex items-center justify-between">
@@ -47,6 +48,7 @@ export function Navbar() {
                         Calculator
                     </a>
                     <div className="flex items-center gap-3">
+                        <ModeToggle />
                         <Link href="/sign-in">
                             <Button variant="ghost" size="sm">Sign In</Button>
                         </Link>
@@ -70,6 +72,10 @@ export function Navbar() {
             {isMobileMenuOpen && (
                 <div className="md:hidden glass mt-2 mx-4 rounded-2xl p-4 shadow-xl animate-grow">
                     <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between px-4 py-2">
+                            <span className="text-sm font-medium">Appearance</span>
+                            <ModeToggle />
+                        </div>
                         <a href="#how-it-works" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                             How It Works
                         </a>
