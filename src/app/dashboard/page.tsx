@@ -73,8 +73,14 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
     const [description, setDescription] = useState("");
     const [targetAmount, setTargetAmount] = useState("");
     const [icon, setIcon] = useState("🎯");
-    const [rate, setRate] = useState("7");
     const [deadlineMonths, setDeadlineMonths] = useState("6");
+
+    // Compute next deposit amount
+    const parsedAmount = parseFloat(targetAmount);
+    const parsedMonths = parseInt(deadlineMonths);
+    const nextDeposit = (!isNaN(parsedAmount) && parsedAmount > 0 && !isNaN(parsedMonths) && parsedMonths > 0)
+        ? parsedAmount / parsedMonths
+        : 0;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -107,7 +113,6 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
                 description: description.trim() || undefined,
                 targetAmount: amount,
                 icon,
-                annualReturnRate: parseFloat(rate) / 100,
                 deadlineMonths: months,
             });
             onClose();
@@ -164,7 +169,7 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
                 />
             </div>
 
-            {/* Target Amount */}
+            {/* Target Amount & Next Deposit */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Target Amount */}
                 <div className="space-y-2">
@@ -185,22 +190,14 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
                     </div>
                 </div>
 
-                {/* Annual Return Rate */}
+                {/* Next Deposit (computed) */}
                 <div className="space-y-2">
-                    <Label htmlFor="goal-rate">Expected Return (%)</Label>
-                    <Input
-                        id="goal-rate"
-                        type="number"
-                        min="0"
-                        max="30"
-                        step="0.5"
-                        placeholder="7"
-                        value={rate}
-                        onChange={(e) => setRate(e.target.value)}
-                        disabled={isLoading}
-                    />
+                    <Label>Next Deposit</Label>
+                    <div className="h-10 px-3 rounded-md border bg-muted/50 flex items-center text-sm font-semibold text-primary">
+                        {nextDeposit > 0 ? formatCurrency(nextDeposit) + "/mo" : "—"}
+                    </div>
                     <p className="text-[10px] text-muted-foreground mt-1">
-                        Avg. S&P 500: ~10%
+                        Auto-calculated: target ÷ months
                     </p>
                 </div>
             </div>
@@ -660,11 +657,34 @@ export default function DashboardPage() {
                                                     </span>
                                                 ) : (
                                                     <span className="text-xs text-muted-foreground">
-                                                        {(goal.annualReturnRate * 100).toFixed(0)}% annual return
+                                                        {progress.toFixed(1)}%
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
+
+                                        {/* Remaining & Next Deposit */}
+                                        {!isComplete && (
+                                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                                <div className="p-2.5 rounded-lg bg-muted/50">
+                                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Remaining</p>
+                                                    <p className="text-sm font-bold text-coral-500">
+                                                        {formatCurrency(Math.max(0, goal.targetAmount - goal.currentAmount))}
+                                                    </p>
+                                                </div>
+                                                <div className="p-2.5 rounded-lg bg-muted/50">
+                                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Next Deposit</p>
+                                                    <p className="text-sm font-bold text-primary">
+                                                        {(() => {
+                                                            const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
+                                                            const monthsLeft = daysLeft !== null ? Math.max(1, Math.ceil(daysLeft / 30)) : 1;
+                                                            return formatCurrency(remaining / monthsLeft);
+                                                        })()}
+                                                        <span className="text-[10px] font-normal text-muted-foreground">/mo</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Add money button */}
                                         {!isComplete && (
