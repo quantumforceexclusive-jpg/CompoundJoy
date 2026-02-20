@@ -29,6 +29,8 @@ import {
     Loader2,
     Wallet,
     ArrowRight,
+    Trash2,
+    Calendar,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -72,6 +74,7 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
     const [targetAmount, setTargetAmount] = useState("");
     const [icon, setIcon] = useState("🎯");
     const [rate, setRate] = useState("7");
+    const [deadlineMonths, setDeadlineMonths] = useState("6");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -92,12 +95,20 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
 
         setIsLoading(true);
         try {
+            const months = parseInt(deadlineMonths);
+            if (isNaN(months) || months < 1 || months > 12) {
+                setError("Deadline must be between 1 and 12 months.");
+                setIsLoading(false);
+                return;
+            }
+
             await createGoal({
                 name: name.trim(),
                 description: description.trim() || undefined,
                 targetAmount: amount,
                 icon,
                 annualReturnRate: parseFloat(rate) / 100,
+                deadlineMonths: months,
             });
             onClose();
         } catch (err: any) {
@@ -192,6 +203,29 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
                         Avg. S&P 500: ~10%
                     </p>
                 </div>
+            </div>
+
+            {/* Deadline */}
+            <div className="space-y-2">
+                <Label htmlFor="goal-deadline">Goal Deadline (months) *</Label>
+                <div className="flex flex-wrap gap-2">
+                    {[1, 2, 3, 6, 9, 12].map((m) => (
+                        <button
+                            key={m}
+                            type="button"
+                            onClick={() => setDeadlineMonths(m.toString())}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${deadlineMonths === m.toString()
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80"
+                                }`}
+                        >
+                            {m} {m === 1 ? "mo" : "mos"}
+                        </button>
+                    ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                    Maximum 12 months. Choose a realistic timeframe.
+                </p>
             </div>
 
             {error && (
@@ -348,9 +382,11 @@ export default function DashboardPage() {
         id: any;
         name: string;
     } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
     const goals = useQuery(api.goals.getGoals);
     const stats = useQuery(api.goals.getUserStats);
+    const deleteGoal = useMutation(api.goals.deleteGoal);
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -529,6 +565,12 @@ export default function DashboardPage() {
                             );
                             const isComplete = goal.currentAmount >= goal.targetAmount;
 
+                            // Calculate time remaining
+                            const now = Date.now();
+                            const deadline = goal.deadline;
+                            const daysLeft = deadline ? Math.max(0, Math.ceil((deadline - now) / (1000 * 60 * 60 * 24))) : null;
+                            const isExpired = daysLeft !== null && daysLeft === 0 && !isComplete;
+
                             return (
                                 <Card
                                     key={goal._id}
@@ -551,6 +593,39 @@ export default function DashboardPage() {
                                                     )}
                                                 </div>
                                             </div>
+                                            {/* Delete button */}
+                                            {deleteConfirm === goal._id ? (
+                                                <div className="flex items-center gap-1">
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="h-7 text-xs px-2"
+                                                        onClick={async () => {
+                                                            await deleteGoal({ goalId: goal._id });
+                                                            setDeleteConfirm(null);
+                                                        }}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-7 text-xs px-2"
+                                                        onClick={() => setDeleteConfirm(null)}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                    onClick={() => setDeleteConfirm(goal._id)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            )}
                                         </div>
                                     </CardHeader>
                                     <CardContent>
@@ -577,9 +652,17 @@ export default function DashboardPage() {
                                                 <span className="text-xs text-muted-foreground">
                                                     {progress.toFixed(1)}% complete
                                                 </span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {(goal.annualReturnRate * 100).toFixed(0)}% annual return
-                                                </span>
+                                                {daysLeft !== null ? (
+                                                    <span className={`text-xs flex items-center gap-1 ${isExpired ? "text-destructive font-semibold" : daysLeft <= 30 ? "text-coral-500" : "text-muted-foreground"
+                                                        }`}>
+                                                        <Calendar className="w-3 h-3" />
+                                                        {isExpired ? "Expired" : `${daysLeft}d left`}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {(goal.annualReturnRate * 100).toFixed(0)}% annual return
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 

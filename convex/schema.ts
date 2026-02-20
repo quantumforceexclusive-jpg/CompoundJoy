@@ -20,6 +20,7 @@ export default defineSchema({
         currentAmount: v.number(),
         icon: v.optional(v.string()),
         annualReturnRate: v.number(), // e.g. 0.07 for 7%
+        deadline: v.number(), // timestamp in ms, max 12 months from creation
         createdAt: v.number(),
     }).index("by_user", ["userId"]),
 

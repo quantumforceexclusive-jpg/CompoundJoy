@@ -44,10 +44,19 @@ export const createGoal = mutation({
         targetAmount: v.number(),
         icon: v.optional(v.string()),
         annualReturnRate: v.optional(v.number()),
+        deadlineMonths: v.number(), // 1-12 months
     },
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
         if (!userId) throw new Error("Not authenticated");
+
+        // Validate deadline is between 1 and 12 months
+        if (args.deadlineMonths < 1 || args.deadlineMonths > 12) {
+            throw new Error("Goal deadline must be between 1 and 12 months.");
+        }
+
+        const now = Date.now();
+        const deadline = now + args.deadlineMonths * 30 * 24 * 60 * 60 * 1000; // approx months in ms
 
         return await ctx.db.insert("goals", {
             userId,
@@ -57,7 +66,8 @@ export const createGoal = mutation({
             currentAmount: 0,
             icon: args.icon || "🎯",
             annualReturnRate: args.annualReturnRate ?? 0.07,
-            createdAt: Date.now(),
+            deadline,
+            createdAt: now,
         });
     },
 });

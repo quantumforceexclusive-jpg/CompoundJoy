@@ -91,6 +91,9 @@ declare module "lucide-react" {
     export const TrendingDown: Icon;
     export const Sun: Icon;
     export const Moon: Icon;
+    export const Trash2: Icon;
+    export const Plane: Icon;
+    export const Music: Icon;
 }
 
 declare module "class-variance-authority" {
