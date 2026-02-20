@@ -72,6 +72,8 @@ declare module "lucide-react" {
     export const Gift: Icon;
     export const Clock: Icon;
     export const Globe: Icon;
+    export const Calendar: Icon;
+    export const Percent: Icon;
     export const Smartphone: Icon;
     export const TrendingDown: Icon;
 }

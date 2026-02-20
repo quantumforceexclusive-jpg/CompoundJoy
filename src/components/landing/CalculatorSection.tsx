@@ -15,11 +15,22 @@ function formatCurrency(value: number): string {
 }
 
 export function CalculatorSection() {
-    const [weeklyAmount, setWeeklyAmount] = useState(25);
+    const [amount, setAmount] = useState(25);
+    const [period, setPeriod] = useState<"weekly" | "monthly">("weekly");
     const [years, setYears] = useState(3);
     const [rate, setRate] = useState(8);
     const [isVisible, setIsVisible] = useState(false);
     const sectionRef = useRef<HTMLElement>(null);
+
+    // Reset amount when period changes to keep ranges sensible
+    const handlePeriodChange = (newPeriod: "weekly" | "monthly") => {
+        setPeriod(newPeriod);
+        if (newPeriod === "monthly") {
+            setAmount(amount * 4); // rough conversion
+        } else {
+            setAmount(Math.round(amount / 4));
+        }
+    };
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -34,28 +45,57 @@ export function CalculatorSection() {
 
     const results = useMemo(() => {
         const weeks = years * 52;
-        const weeklyRate = rate / 100 / 52;
+        const periodsPerYear = period === "weekly" ? 52 : 12;
+        const totalPeriods = years * periodsPerYear;
+        const periodRate = rate / 100 / periodsPerYear;
+
         let total = 0;
         const dataPoints: { week: number; value: number; deposited: number }[] = [];
 
+        // For charting, we still want detailed points, but calculation follows period
+        // We'll calculate week-by-week for the chart resolution
+        let currentDeposit = 0;
+
         for (let w = 1; w <= weeks; w++) {
-            total = (total + weeklyAmount) * (1 + weeklyRate);
-            if (w % (Math.max(1, Math.floor(weeks / 20))) === 0 || w === weeks) {
-                dataPoints.push({
-                    week: w,
+            // Add deposit if it's a deposit week/month
+            const isDepositTime = period === "weekly" ? true : w % 4 === 0; // Simplified monthly appx
+
+            // Continuous compounding approximation for the chart
+            // But let's stick to discrete period logic roughly
+
+            // Simpler approach: Calculate true compounding based on selected period
+            // then interpolate for chart if needed. 
+            // Actually, let's just use the period logic for the loop
+        }
+
+        // Re-write calculation loop for clarity
+        total = 0;
+        let deposited = 0;
+        const points = [];
+
+        for (let p = 1; p <= totalPeriods; p++) {
+            total = (total + amount) * (1 + periodRate);
+            deposited += amount;
+
+            // Map period back to approximate week for X-axis consistent scaling
+            const approximateWeek = period === "weekly" ? p : p * 4.33;
+
+            if (p % (Math.max(1, Math.floor(totalPeriods / 20))) === 0 || p === totalPeriods) {
+                points.push({
+                    week: approximateWeek,
                     value: Math.round(total),
-                    deposited: w * weeklyAmount,
+                    deposited: deposited,
                 });
             }
         }
 
-        const totalDeposited = weeks * weeklyAmount;
+        const totalDeposited = deposited;
         const interestEarned = Math.round(total - totalDeposited);
 
-        return { total: Math.round(total), totalDeposited, interestEarned, dataPoints };
-    }, [weeklyAmount, years, rate]);
+        return { total: Math.round(total), totalDeposited, interestEarned, dataPoints: points };
+    }, [amount, period, years, rate]);
 
-    // Simple SVG chart
+    // ... chart dimensions ...
     const chartWidth = 600;
     const chartHeight = 280;
     const padding = { top: 20, right: 20, bottom: 30, left: 60 };
@@ -80,7 +120,7 @@ export function CalculatorSection() {
         compoundLine +
         ` L ${getX(results.dataPoints.length - 1)} ${getY(0)} L ${getX(0)} ${getY(0)} Z`;
 
-    // Goal suggestions
+    // ... goals ...
     const goals = [
         { name: "🎉 Concert Tickets", cost: 200 },
         { name: "📱 New iPhone", cost: 1200 },
@@ -95,57 +135,72 @@ export function CalculatorSection() {
         <section ref={sectionRef} id="calculator" className="py-24 bg-background relative">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
-                    <span
-                        className={`inline-block text-sm font-semibold text-joy-600 dark:text-joy-400 uppercase tracking-wider mb-3 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                            }`}
-                    >
+                    <span className={`inline-block text-sm font-semibold text-joy-600 dark:text-joy-400 uppercase tracking-wider mb-3 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
                         See the Magic
                     </span>
-                    <h2
-                        className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-[family-name:var(--font-outfit)] mb-4 transition-all duration-700 delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                            }`}
-                    >
+                    <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-[family-name:var(--font-outfit)] mb-4 transition-all duration-700 delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
                         Your Money, <span className="text-gradient">Compounded</span>
                     </h2>
-                    <p
-                        className={`text-lg text-muted-foreground max-w-xl mx-auto transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                            }`}
-                    >
-                        Play with the numbers yourself. See how small, consistent savings
-                        grow into something amazing.
+                    <p className={`text-lg text-muted-foreground max-w-xl mx-auto transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+                        Play with the numbers yourself. See how small, consistent savings grow into something amazing.
                     </p>
                 </div>
 
-                <div
-                    className={`max-w-5xl mx-auto transition-all duration-700 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-                        }`}
-                >
+                <div className={`max-w-5xl mx-auto transition-all duration-700 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
                     <Card className="border-0 shadow-xl overflow-hidden">
                         <div className="grid lg:grid-cols-5 gap-0">
                             {/* Controls */}
                             <div className="lg:col-span-2 p-6 lg:p-8 bg-muted/50 space-y-8">
-                                {/* Weekly Amount */}
+                                {/* Amount & Period Toggle */}
                                 <div>
-                                    <Label className="flex items-center gap-2 mb-3 text-base font-semibold">
-                                        <DollarSign className="w-4 h-4 text-joy-500" />
-                                        Weekly Savings
-                                    </Label>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <Label className="flex items-center gap-2 text-base font-semibold">
+                                            <DollarSign className="w-4 h-4 text-joy-500" />
+                                            {period === "weekly" ? "Weekly" : "Monthly"} Savings
+                                        </Label>
+
+                                        {/* Toggle Switch */}
+                                        <div className="flex bg-muted-foreground/10 p-1 rounded-lg">
+                                            <button
+                                                onClick={() => handlePeriodChange("weekly")}
+                                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${period === "weekly"
+                                                    ? "bg-background shadow-sm text-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                                    }`}
+                                            >
+                                                Weekly
+                                            </button>
+                                            <button
+                                                onClick={() => handlePeriodChange("monthly")}
+                                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${period === "monthly"
+                                                    ? "bg-background shadow-sm text-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                                    }`}
+                                            >
+                                                Monthly
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <div className="flex items-center gap-3">
                                         <input
                                             type="range"
-                                            min={5}
-                                            max={200}
-                                            step={5}
-                                            value={weeklyAmount}
-                                            onChange={(e) => setWeeklyAmount(Number(e.target.value))}
+                                            min={period === "weekly" ? 5 : 20}
+                                            max={period === "weekly" ? 500 : 2000}
+                                            step={period === "weekly" ? 5 : 20}
+                                            value={amount}
+                                            onChange={(e) => setAmount(Number(e.target.value))}
                                             className="flex-1 accent-joy-500 h-2 rounded-full"
                                         />
-                                        <span className="text-lg font-bold w-16 text-right tabular-nums">
-                                            ${weeklyAmount}
+                                        <span className="text-lg font-bold w-20 text-right tabular-nums">
+                                            ${amount}
                                         </span>
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        ${(weeklyAmount * 4.33).toFixed(0)}/month
+                                        {period === "weekly"
+                                            ? `$${(amount * 4.33).toFixed(0)}/month`
+                                            : `$${(amount * 12).toFixed(0)}/year`
+                                        }
                                     </p>
                                 </div>
 
