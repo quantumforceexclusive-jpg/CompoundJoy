@@ -15,21 +15,14 @@ function formatCurrency(value: number): string {
 }
 
 export function CalculatorSection() {
-    const [amount, setAmount] = useState(25);
     const [period, setPeriod] = useState<"weekly" | "monthly">("weekly");
     const [years, setYears] = useState(3);
     const [goalAmount, setGoalAmount] = useState(1000);
     const [isVisible, setIsVisible] = useState(false);
     const sectionRef = useRef<HTMLElement>(null);
 
-    // Reset amount when period changes to keep ranges sensible
     const handlePeriodChange = (newPeriod: "weekly" | "monthly") => {
         setPeriod(newPeriod);
-        if (newPeriod === "monthly") {
-            setAmount(amount * 4); // rough conversion
-        } else {
-            setAmount(Math.round(amount / 4));
-        }
     };
 
     useEffect(() => {
@@ -50,33 +43,25 @@ export function CalculatorSection() {
         const fixedRate = 7; // Default annual return for chart display
         const periodRate = fixedRate / 100 / periodsPerYear;
 
+        // Calculate required contribution to hit goal (ignoring interest for safety)
+        // This ensures the user definitely hits the goal, and interest is a bonus.
+        const totalMonths = years * 12;
+        const requiredMonthly = goalAmount / totalMonths;
+        const requiredPeriodContribution = period === "weekly" ? requiredMonthly / 4.33 : requiredMonthly;
+
+        // Use this calculated amount for the projection
+        const contribution = requiredPeriodContribution;
+
+        // Next deposit calculation values
+        const nextDepositPeriod = contribution;
+
         let total = 0;
-        const dataPoints: { week: number; value: number; deposited: number }[] = [];
-
-        // For charting, we still want detailed points, but calculation follows period
-        // We'll calculate week-by-week for the chart resolution
-        let currentDeposit = 0;
-
-        for (let w = 1; w <= weeks; w++) {
-            // Add deposit if it's a deposit week/month
-            const isDepositTime = period === "weekly" ? true : w % 4 === 0; // Simplified monthly appx
-
-            // Continuous compounding approximation for the chart
-            // But let's stick to discrete period logic roughly
-
-            // Simpler approach: Calculate true compounding based on selected period
-            // then interpolate for chart if needed. 
-            // Actually, let's just use the period logic for the loop
-        }
-
-        // Re-write calculation loop for clarity
-        total = 0;
         let deposited = 0;
         const points = [];
 
         for (let p = 1; p <= totalPeriods; p++) {
-            total = (total + amount) * (1 + periodRate);
-            deposited += amount;
+            total = (total + contribution) * (1 + periodRate);
+            deposited += contribution;
 
             // Map period back to approximate week for X-axis consistent scaling
             const approximateWeek = period === "weekly" ? p : p * 4.33;
@@ -90,16 +75,13 @@ export function CalculatorSection() {
             }
         }
 
-        const totalDeposited = deposited;
-        const interestEarned = Math.round(total - totalDeposited);
+        // Start at 0
+        if (points.length > 0 && points[0].week > 1) {
+            points.unshift({ week: 0, value: 0, deposited: 0 });
+        }
 
-        // Next deposit calculation: remaining / remaining periods
-        const totalMonths = years * 12;
-        const nextDepositMonthly = goalAmount / totalMonths;
-        const nextDepositPeriod = period === "weekly" ? nextDepositMonthly / 4.33 : nextDepositMonthly;
-
-        return { total: Math.round(total), totalDeposited, interestEarned, dataPoints: points, nextDepositPeriod, totalMonths };
-    }, [amount, period, years, goalAmount]);
+        return { total: Math.round(total), totalDeposited: Math.round(deposited), dataPoints: points, nextDepositPeriod, totalMonths };
+    }, [period, years, goalAmount]);
 
     // ... chart dimensions ...
     const chartWidth = 600;
@@ -157,15 +139,13 @@ export function CalculatorSection() {
                         <div className="grid lg:grid-cols-5 gap-0">
                             {/* Controls */}
                             <div className="lg:col-span-2 p-6 lg:p-8 bg-muted/50 space-y-8">
-                                {/* Amount & Period Toggle */}
+                                {/* Period Toggle */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center justify-between mb-6">
                                         <Label className="flex items-center gap-2 text-base font-semibold">
                                             <DollarSign className="w-4 h-4 text-joy-500" />
-                                            {period === "weekly" ? "Weekly" : "Monthly"} Savings
+                                            Contribution Frequency
                                         </Label>
-
-                                        {/* Toggle Switch */}
                                         <div className="flex bg-muted-foreground/10 p-1 rounded-lg">
                                             <button
                                                 onClick={() => handlePeriodChange("weekly")}
@@ -187,27 +167,7 @@ export function CalculatorSection() {
                                             </button>
                                         </div>
                                     </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="range"
-                                            min={period === "weekly" ? 5 : 20}
-                                            max={period === "weekly" ? 500 : 2000}
-                                            step={period === "weekly" ? 5 : 20}
-                                            value={amount}
-                                            onChange={(e) => setAmount(Number(e.target.value))}
-                                            className="flex-1 accent-joy-500 h-2 rounded-full"
-                                        />
-                                        <span className="text-lg font-bold w-20 text-right tabular-nums">
-                                            ${amount}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        {period === "weekly"
-                                            ? `$${(amount * 4.33).toFixed(0)}/month`
-                                            : `$${(amount * 12).toFixed(0)}/year`
-                                        }
-                                    </p>
+                                    {/* Removed Manual Savings Slider */}
                                 </div>
 
                                 {/* Years */}
@@ -271,24 +231,13 @@ export function CalculatorSection() {
                                     </p>
                                 </div>
 
-                                {/* Results */}
+                                {/* Results Summary (Simplified) */}
                                 <div className="pt-4 border-t space-y-3">
                                     <div className="flex justify-between">
-                                        <span className="text-sm text-muted-foreground">You deposit</span>
-                                        <span className="font-semibold">{formatCurrency(results.totalDeposited)}</span>
+                                        <span className="text-sm text-muted-foreground">Based on Goal</span>
+                                        <span className="font-semibold">{formatCurrency(goalAmount)}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm text-muted-foreground">Interest earned</span>
-                                        <span className="font-semibold text-joy-600 dark:text-joy-400">
-                                            +{formatCurrency(results.interestEarned)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between pt-2 border-t">
-                                        <span className="font-semibold">Total Value</span>
-                                        <span className="text-2xl font-bold text-gradient">
-                                            {formatCurrency(results.total)}
-                                        </span>
-                                    </div>
+                                    {/* Removed Interest Earned Field */}
                                 </div>
                             </div>
 
