@@ -15,10 +15,16 @@ export default function SignInPage() {
     const { isAuthenticated } = useConvexAuth();
     const router = useRouter();
     const { signIn } = useAuthActions();
-
     useEffect(() => {
         if (isAuthenticated) {
+            console.log("Authenticated! Redirecting to dashboard...");
             router.push("/dashboard");
+
+            // Fallback for stuck router states
+            const timer = setTimeout(() => {
+                window.location.href = "/dashboard";
+            }, 1000);
+            return () => clearTimeout(timer);
         }
     }, [isAuthenticated, router]);
 
