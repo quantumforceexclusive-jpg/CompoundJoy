@@ -94,6 +94,7 @@ declare module "lucide-react" {
     export const Trash2: Icon;
     export const Plane: Icon;
     export const Music: Icon;
+    export const Settings: Icon;
 }
 
 declare module "class-variance-authority" {

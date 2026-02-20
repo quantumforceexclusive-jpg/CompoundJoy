@@ -18,7 +18,7 @@ export function CalculatorSection() {
     const [amount, setAmount] = useState(25);
     const [period, setPeriod] = useState<"weekly" | "monthly">("weekly");
     const [years, setYears] = useState(3);
-    const [rate, setRate] = useState(8);
+    const [goalAmount, setGoalAmount] = useState(1000);
     const [isVisible, setIsVisible] = useState(false);
     const sectionRef = useRef<HTMLElement>(null);
 
@@ -47,7 +47,8 @@ export function CalculatorSection() {
         const weeks = years * 52;
         const periodsPerYear = period === "weekly" ? 52 : 12;
         const totalPeriods = years * periodsPerYear;
-        const periodRate = rate / 100 / periodsPerYear;
+        const fixedRate = 7; // Default annual return for chart display
+        const periodRate = fixedRate / 100 / periodsPerYear;
 
         let total = 0;
         const dataPoints: { week: number; value: number; deposited: number }[] = [];
@@ -92,8 +93,13 @@ export function CalculatorSection() {
         const totalDeposited = deposited;
         const interestEarned = Math.round(total - totalDeposited);
 
-        return { total: Math.round(total), totalDeposited, interestEarned, dataPoints: points };
-    }, [amount, period, years, rate]);
+        // Next deposit calculation: remaining / remaining periods
+        const totalMonths = years * 12;
+        const nextDepositMonthly = goalAmount / totalMonths;
+        const nextDepositPeriod = period === "weekly" ? nextDepositMonthly / 4.33 : nextDepositMonthly;
+
+        return { total: Math.round(total), totalDeposited, interestEarned, dataPoints: points, nextDepositPeriod, totalMonths };
+    }, [amount, period, years, goalAmount]);
 
     // ... chart dimensions ...
     const chartWidth = 600;
@@ -226,28 +232,42 @@ export function CalculatorSection() {
                                     </div>
                                 </div>
 
-                                {/* Rate */}
+                                {/* Goal Amount */}
                                 <div>
                                     <Label className="flex items-center gap-2 mb-3 text-base font-semibold">
-                                        <Percent className="w-4 h-4 text-teal-500" />
-                                        Annual Return
+                                        <TrendingUp className="w-4 h-4 text-teal-500" />
+                                        Goal Amount
                                     </Label>
                                     <div className="flex items-center gap-3">
                                         <input
                                             type="range"
-                                            min={1}
-                                            max={15}
-                                            step={0.5}
-                                            value={rate}
-                                            onChange={(e) => setRate(Number(e.target.value))}
+                                            min={100}
+                                            max={50000}
+                                            step={100}
+                                            value={goalAmount}
+                                            onChange={(e) => setGoalAmount(Number(e.target.value))}
                                             className="flex-1 accent-teal-500 h-2 rounded-full"
                                         />
-                                        <span className="text-lg font-bold w-16 text-right tabular-nums">
-                                            {rate}%
+                                        <span className="text-lg font-bold w-24 text-right tabular-nums">
+                                            {formatCurrency(goalAmount)}
                                         </span>
                                     </div>
+                                </div>
+
+                                {/* Next Deposit (computed) */}
+                                <div className="p-4 rounded-xl bg-gradient-to-r from-joy-50 to-teal-50 dark:from-joy-950/30 dark:to-teal-950/30 border border-joy-200 dark:border-joy-800">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Percent className="w-4 h-4 text-joy-600 dark:text-joy-400" />
+                                        <span className="text-sm font-semibold text-joy-700 dark:text-joy-300">Next Deposit</span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-gradient">
+                                        {formatCurrency(Math.ceil(results.nextDepositPeriod))}
+                                        <span className="text-sm font-normal text-muted-foreground ml-1">
+                                            /{period === "weekly" ? "week" : "month"}
+                                        </span>
+                                    </p>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        S&P 500 avg: ~10%/year
+                                        {formatCurrency(goalAmount)} over {results.totalMonths} months = {formatCurrency(goalAmount / results.totalMonths)}/mo
                                     </p>
                                 </div>
 

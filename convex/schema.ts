@@ -12,6 +12,15 @@ import { authTables } from "@convex-dev/auth/server";
 export default defineSchema({
     ...authTables,
 
+    userProfiles: defineTable({
+        userId: v.string(),
+        displayName: v.string(),
+        profileImageUrl: v.optional(v.string()),
+        role: v.string(), // "user" | "admin"
+        status: v.optional(v.string()), // e.g. "Saving for my dream vacation!"
+        createdAt: v.number(),
+    }).index("by_user", ["userId"]),
+
     goals: defineTable({
         userId: v.string(),
         name: v.string(),

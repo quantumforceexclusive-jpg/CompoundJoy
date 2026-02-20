@@ -32,6 +32,7 @@ import {
     Trash2,
     Calendar,
 } from "lucide-react";
+import { ProfileDropdown } from "@/components/ui/ProfileDropdown";
 import Link from "next/link";
 
 // Goal emoji picker options
@@ -396,11 +397,6 @@ export default function DashboardPage() {
         return <DashboardSkeleton />;
     }
 
-    const handleSignOut = async () => {
-        await signOut();
-        router.push("/");
-    };
-
     return (
         <div className="min-h-screen bg-muted/30">
             {/* Header */}
@@ -415,10 +411,7 @@ export default function DashboardPage() {
                         </span>
                     </Link>
 
-                    <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                    </Button>
+                    <ProfileDropdown />
                 </div>
             </header>
 
