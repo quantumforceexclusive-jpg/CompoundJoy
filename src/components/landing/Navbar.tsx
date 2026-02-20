@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles } from "lucide-react";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { useConvexAuth } from "convex/react";
 
 export function Navbar() {
+    const { isAuthenticated } = useConvexAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -49,12 +51,23 @@ export function Navbar() {
                     </a>
                     <div className="flex items-center gap-3">
                         <ModeToggle />
-                        <Link href="/sign-in">
-                            <Button variant="ghost" size="sm">Sign In</Button>
-                        </Link>
-                        <Link href="/sign-up">
-                            <Button variant="joy" size="sm">Start Free</Button>
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link href="/dashboard">
+                                <Button variant="joy" size="sm" className="gap-2">
+                                    <Sparkles className="w-4 h-4" />
+                                    Go to Dashboard
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href="/sign-in">
+                                    <Button variant="ghost" size="sm">Sign In</Button>
+                                </Link>
+                                <Link href="/sign-up">
+                                    <Button variant="joy" size="sm">Start Free</Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -69,32 +82,34 @@ export function Navbar() {
             </div>
 
             {/* Mobile Menu */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden glass mt-2 mx-4 rounded-2xl p-4 shadow-xl animate-grow">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between px-4 py-2">
-                            <span className="text-sm font-medium">Appearance</span>
-                            <ModeToggle />
+            {
+                isMobileMenuOpen && (
+                    <div className="md:hidden glass mt-2 mx-4 rounded-2xl p-4 shadow-xl animate-grow">
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between px-4 py-2">
+                                <span className="text-sm font-medium">Appearance</span>
+                                <ModeToggle />
+                            </div>
+                            <a href="#how-it-works" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                                How It Works
+                            </a>
+                            <a href="#features" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                                Features
+                            </a>
+                            <a href="#calculator" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+                                Calculator
+                            </a>
+                            <hr className="border-border" />
+                            <Link href="/sign-in" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
+                                Sign In
+                            </Link>
+                            <Link href="/sign-up">
+                                <Button variant="joy" className="w-full">Start Free</Button>
+                            </Link>
                         </div>
-                        <a href="#how-it-works" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            How It Works
-                        </a>
-                        <a href="#features" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            Features
-                        </a>
-                        <a href="#calculator" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            Calculator
-                        </a>
-                        <hr className="border-border" />
-                        <Link href="/sign-in" className="px-4 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium">
-                            Sign In
-                        </Link>
-                        <Link href="/sign-up">
-                            <Button variant="joy" className="w-full">Start Free</Button>
-                        </Link>
                     </div>
-                </div>
-            )}
-        </nav>
+                )
+            }
+        </nav >
     );
 }
