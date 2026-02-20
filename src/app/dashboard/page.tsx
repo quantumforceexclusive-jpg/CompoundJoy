@@ -154,41 +154,44 @@ function CreateGoalDialog({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* Target Amount */}
-            <div className="space-y-2">
-                <Label htmlFor="goal-amount">Target Amount *</Label>
-                <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        id="goal-amount"
-                        type="number"
-                        min="1"
-                        step="0.01"
-                        placeholder="1200"
-                        value={targetAmount}
-                        onChange={(e) => setTargetAmount(e.target.value)}
-                        disabled={isLoading}
-                        className="pl-8"
-                    />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Target Amount */}
+                <div className="space-y-2">
+                    <Label htmlFor="goal-amount">Target Amount *</Label>
+                    <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                            id="goal-amount"
+                            type="number"
+                            min="1"
+                            step="0.01"
+                            placeholder="1200"
+                            value={targetAmount}
+                            onChange={(e) => setTargetAmount(e.target.value)}
+                            disabled={isLoading}
+                            className="pl-8"
+                        />
+                    </div>
                 </div>
-            </div>
 
-            {/* Annual Return Rate */}
-            <div className="space-y-2">
-                <Label htmlFor="goal-rate">Expected Annual Return (%)</Label>
-                <Input
-                    id="goal-rate"
-                    type="number"
-                    min="0"
-                    max="30"
-                    step="0.5"
-                    placeholder="7"
-                    value={rate}
-                    onChange={(e) => setRate(e.target.value)}
-                    disabled={isLoading}
-                />
-                <p className="text-xs text-muted-foreground">
-                    Average S&P 500 return is ~10%. Use 7% for conservative estimates.
-                </p>
+                {/* Annual Return Rate */}
+                <div className="space-y-2">
+                    <Label htmlFor="goal-rate">Expected Return (%)</Label>
+                    <Input
+                        id="goal-rate"
+                        type="number"
+                        min="0"
+                        max="30"
+                        step="0.5"
+                        placeholder="7"
+                        value={rate}
+                        onChange={(e) => setRate(e.target.value)}
+                        disabled={isLoading}
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                        Avg. S&P 500: ~10%
+                    </p>
+                </div>
             </div>
 
             {error && (

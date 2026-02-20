@@ -1,6 +1,19 @@
 // Module declarations for packages whose types don't resolve under
 // moduleResolution: "bundler" in some IDE environments.
 
+declare module "@radix-ui/react-dialog" {
+    import { FC, ReactNode, ComponentPropsWithoutRef, ForwardRefExoticComponent, RefAttributes } from "react";
+
+    export const Root: FC<{ children: ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void }>;
+    export const Trigger: ForwardRefExoticComponent<ComponentPropsWithoutRef<"button"> & { asChild?: boolean } & RefAttributes<HTMLButtonElement>>;
+    export const Portal: FC<{ children: ReactNode }>;
+    export const Close: ForwardRefExoticComponent<ComponentPropsWithoutRef<"button"> & { asChild?: boolean } & RefAttributes<HTMLButtonElement>>;
+    export const Overlay: ForwardRefExoticComponent<ComponentPropsWithoutRef<"div"> & RefAttributes<HTMLDivElement>>;
+    export const Content: ForwardRefExoticComponent<ComponentPropsWithoutRef<"div"> & RefAttributes<HTMLDivElement>>;
+    export const Title: ForwardRefExoticComponent<ComponentPropsWithoutRef<"h2"> & RefAttributes<HTMLHeadingElement>>;
+    export const Description: ForwardRefExoticComponent<ComponentPropsWithoutRef<"p"> & RefAttributes<HTMLParagraphElement>>;
+}
+
 declare module "@radix-ui/react-slot" {
     import { ComponentPropsWithRef, ForwardRefExoticComponent, ReactNode } from "react";
 
