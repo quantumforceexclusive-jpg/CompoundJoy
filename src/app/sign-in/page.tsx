@@ -49,9 +49,12 @@ export default function SignInPage() {
             // Redirect is handled by the effect or router.push
             router.push("/dashboard");
         } catch (err: any) {
-            console.error("Sign in error:", err);
             const msg = err?.message || "Invalid email or password";
-            setError(msg.includes("Invalid login") ? "Invalid email or password." : msg);
+            if (msg.includes("Invalid login") || msg.includes("InvalidSecret") || msg.includes("Do not have an account") || msg.includes("Password does not match")) {
+                setError("Invalid email or password.");
+            } else {
+                setError(msg);
+            }
         } finally {
             setIsLoading(false);
         }

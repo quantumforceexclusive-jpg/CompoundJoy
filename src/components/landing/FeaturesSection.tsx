@@ -101,8 +101,8 @@ export function FeaturesSection() {
                         <Card
                             key={index}
                             className={`group hover-lift border-0 shadow-md hover:shadow-xl bg-card transition-all duration-700 ${isVisible
-                                    ? "opacity-100 translate-y-0"
-                                    : "opacity-0 translate-y-12"
+                                ? "opacity-100 translate-y-0"
+                                : "opacity-0 translate-y-12"
                                 }`}
                             style={{ transitionDelay: `${(index + 2) * 100}ms` }}
                         >
